@@ -10,6 +10,8 @@ jobs:
   ss2lf:
     runs-on: ubuntu-22.04
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
     - name: Setup Linode CLI
       run: pip3 install linode-cli --upgrade
     - name: Setup Akamai CLI
