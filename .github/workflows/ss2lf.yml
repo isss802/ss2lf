@@ -36,7 +36,7 @@ jobs:
       if: ${{ steps.get_ack.outcome == 'success' }}
       run: |
         echo ${{ steps.get_ack.outcome }}
-        exit 0
+        exit 1
 
     - name: Diff SS LF ip list
       id: diff
