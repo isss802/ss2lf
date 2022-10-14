@@ -8,5 +8,4 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Setup Linode CLI
-      uses: actions/checkout@v2
       run: echo ${{ secrets.LINODE_CLI_TOKEN }}
