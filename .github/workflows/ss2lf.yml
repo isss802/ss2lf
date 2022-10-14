@@ -64,9 +64,26 @@ jobs:
       if: steps.diff.outcome == 'failure'
     
     
-    - name: Diff SS LF ip list
+    - name: Diff SS LF ip list 2
       id: diff-2
       run: |
         linode-cli firewalls rules-list $FIREWALL_ID --json | jq '.[].inbound[].addresses.ipv4' > lf-2.json
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs' > ss-2.json
         diff lf-2.json ss-2.json      
+        
+    - name: Update acknowledged
+      run: |
+        ./akamai site-shield --section default acknowledge --map-id $MAP_ID
+
+    - name: Get acknowledged 2
+      id: get_ack_2
+      run: |
+        ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
+      continue-on-error: true
+        
+    - name: Check acknowledged 2
+      if: ${{ steps.get_ack_2.outcome == 'success' }}
+      run: |
+        echo ${{ steps.get_ack_2.outcome }}
+        exit 0
+
