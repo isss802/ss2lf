@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   
 env:
-  LINODE_CLI_TOKEN:${{ secrets.LINODE_CLI_TOKEN }}
+  LINODE_CLI_TOKEN: ${{secrets.LINODE_CLI_TOKEN}}
 
 jobs:
   ss2lf:
