@@ -11,4 +11,5 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Setup Linode CLI
-      run: echo $LINODE_CLI_TOKEN
+      run: |
+        pip3 --version
