@@ -15,4 +15,6 @@ jobs:
     - name: Setup Linode CLI
       run: pip3 install linode-cli --upgrade
     - name: Setup Akamai CLI
-      run: ./akamai --help
+      run: |
+        chmod +x akamai
+        ./akamai --help
