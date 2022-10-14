@@ -16,5 +16,5 @@ jobs:
       run: pip3 install linode-cli --upgrade
     - name: Setup Akamai CLI
       run: |
-        ls
-        pwd
+        mv akamai /usr/local/bin/
+        akamai --help
