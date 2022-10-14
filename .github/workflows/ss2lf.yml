@@ -29,7 +29,7 @@ jobs:
     - name: Check acknowledged
       id: ack
       run: |
-        ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==false)'
+        ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
       continue-on-error: true
 
     - name: Diff SS LF ip list
@@ -45,7 +45,6 @@ jobs:
       run: |
         SS_IP_LIST=`./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs | @csv'`
         echo "SS_IP_LIST=$SS_IP_LIST" >> $GITHUB_ENV
-        exit 1
       if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
       
     - name: Create allow ip list
