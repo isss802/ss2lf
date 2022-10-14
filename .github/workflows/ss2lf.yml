@@ -76,7 +76,7 @@ jobs:
       run: |
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
         
-    - name: Diff SS LF ip list 3
+    - name: Diff SS LF current ip list
       run: |
         linode-cli firewalls rules-list $FIREWALL_ID --json | jq '.[].inbound[].addresses.ipv4' > lf-3.json
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.currentCidrs' > ss-3.json
