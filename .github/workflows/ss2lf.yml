@@ -39,6 +39,7 @@ jobs:
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs' > ss.json
         diff lf.json ss.json
       continue-on-error: true
+      if: steps.ack.outcome == 'failure'
 
     - name: Get SiteShield ip list
       run: |
@@ -63,7 +64,8 @@ jobs:
       run: |
         linode-cli firewalls rules-list $FIREWALL_ID --json | jq '.[].inbound[].addresses.ipv4' > lf-2.json
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs' > ss-2.json
-        diff lf-2.json ss-2.json      
+        diff lf-2.json ss-2.json
+      if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
         
     - name: Update acknowledged
       run: |
@@ -73,4 +75,10 @@ jobs:
     - name: Check acknowledged 2
       run: |
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
+        
+    - name: Diff SS LF ip list 3
+      run: |
+        linode-cli firewalls rules-list $FIREWALL_ID --json | jq '.[].inbound[].addresses.ipv4' > lf-3.json
+        ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.currentCidrs' > ss-3.json
+        diff lf-3.json ss-3.json
 
