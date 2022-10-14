@@ -1,8 +1,9 @@
 name: ss2lf
 
-on: 
-  workflow_dispatch:
-  
+on:
+  schedule:
+    - cron: '10/* * * * *'
+
 env:
   LINODE_CLI_TOKEN: ${{secrets.LINODE_CLI_TOKEN}}
   AKAMAI_CREDENTIALS: ${{secrets.AKAMAI_CREDENTIALS}}
