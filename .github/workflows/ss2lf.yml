@@ -29,7 +29,7 @@ jobs:
     - name: Diff SS LF ip list
       run: |
         linode-cli firewalls rules-list $FIREWALL_ID --json | jq '.[].inbound[].addresses.ipv4' > lf.json
-        akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs' > ss.json
+        ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs' > ss.json
         diff lf.json ss.json
 
     - name: Get SiteShield ip list
