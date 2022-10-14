@@ -17,4 +17,5 @@ jobs:
     - name: Setup Akamai CLI
       run: |
         chmod +x akamai
-        akamai --help
+        ./akamai install firewall
+        ./akamai site-shield --help
