@@ -29,9 +29,10 @@ jobs:
     - name: Get SiteShield ip list
       run: |
         IP_LIST=`./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs | @csv'`
-    
+        
     - name: Create allow ip list
       run: |
+        echo "$IP_LIST"
         printf '[{"protocol": "TCP", "ports": "443", "addresses": {"ipv4": [%s]}, "action": "ACCEPT"}]' $IP_LIST
 
     - name: Update linode firewall
