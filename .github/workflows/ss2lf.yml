@@ -12,4 +12,5 @@ jobs:
     steps:
     - name: Setup Linode CLI
       run: |
-        pip3 --version
+        pip3 install linode-cli --upgrade
+        linode-cli firewalls list
