@@ -32,7 +32,7 @@ jobs:
     
     - name: Create allow ip list
       run: |
-        ALLOW_IP_LIST=`printf '[{"protocol": "TCP", "ports": "443", "addresses": {"ipv4": [%s]}, "action": "ACCEPT"}]' $IP_LIST`
+        printf '[{"protocol": "TCP", "ports": "443", "addresses": {"ipv4": [%s]}, "action": "ACCEPT"}]' $IP_LIST
 
     - name: Update linode firewall
       run: |
