@@ -25,6 +25,18 @@ jobs:
         echo "$AKAMAI_CREDENTIALS" > ~/.edgerc
         chmod +x akamai
         ./akamai install firewall
+        
+    - name: Get acknowledged
+      id: get_ack
+      run: |
+        ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
+      continue-on-error: true
+        
+    - name: Check acknowledged
+      if: ${{ steps.get_ack.outcome == 'success' }}
+      run: |
+        echo ${{ steps.get_ack.outcome }}
+        exit 0
 
     - name: Diff SS LF ip list
       id: diff
@@ -50,3 +62,11 @@ jobs:
       run: |
         linode-cli firewalls rules-update $FIREWALL_ID --inbound ${{ env.LF_IP_LIST }}
       if: steps.diff.outcome == 'failure'
+    
+    
+    - name: Diff SS LF ip list
+      id: diff-2
+      run: |
+        linode-cli firewalls rules-list $FIREWALL_ID --json | jq '.[].inbound[].addresses.ipv4' > lf-2.json
+        ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs' > ss-2.json
+        diff lf-2.json ss-2.json      
