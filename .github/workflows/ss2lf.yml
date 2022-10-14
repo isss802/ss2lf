@@ -14,24 +14,29 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     
+    # git内のakamai cliのファイルを取得
     - name: Checkout
       uses: actions/checkout@v3
     
+    # Linode CLIをインストール
     - name: Setup Linode CLI
       run: pip3 install linode-cli --upgrade
 
+    # Akamai CLIののバイナリに実行権限を付与し、SiteShiledのモジュールをインストール
     - name: Setup Akamai CLI
       run: |
         echo "$AKAMAI_CREDENTIALS" > ~/.edgerc
         chmod +x akamai
         ./akamai install firewall
-        
+    
+    # acknowledgedがfalseの場合には、Firewallの更新を行う
     - name: Check acknowledged
       id: ack
       run: |
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
       continue-on-error: true
-
+    
+    # LinodeのFirewall ruleとSiteShiledのIPに差分がある際に更新を行う
     - name: Diff SS LF ip list
       id: diff
       run: |
@@ -41,24 +46,27 @@ jobs:
       continue-on-error: true
       if: steps.ack.outcome == 'failure'
 
+    # 対象MapのSite Shieldの更新予定のIP listを取得
     - name: Get SiteShield ip list
       run: |
         SS_IP_LIST=`./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs | @csv'`
         echo "SS_IP_LIST=$SS_IP_LIST" >> $GITHUB_ENV
       if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
-      
+    
+    # 取得したSite ShieldのIP ListをLinodeのFirewall ruleに適用できるようにjson形式にする
     - name: Create allow ip list
       run: |
         LF_IP_LIST=`printf '[{"protocol": "TCP", "ports": "443", "addresses": {"ipv4": [%s]}, "action": "ACCEPT"}]' $SS_IP_LIST`
         echo "LF_IP_LIST='$LF_IP_LIST'" >> $GITHUB_ENV
       if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
-      
+  
+    # 指定したLinodeのFirewallにSite ShieldのIP Listを適用する    
     - name: Update linode firewall
       run: |
         linode-cli firewalls rules-update $FIREWALL_ID --inbound ${{ env.LF_IP_LIST }}
       if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
     
-    
+    # 差分がなく正しく適用されていることを確認する
     - name: Diff SS LF ip list 2
       id: diff-2
       run: |
@@ -66,16 +74,19 @@ jobs:
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs' > ss-2.json
         diff lf-2.json ss-2.json
       if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
-        
+    
+    # 新しいIP Listを使えるようにSite ShieldのAck処理をする
     - name: Update acknowledged
       run: |
         ./akamai site-shield --section default acknowledge --map-id $MAP_ID
       if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
 
+    # Site ShieldのAckが行われたか確認する
     - name: Check acknowledged 2
       run: |
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
-        
+    
+    # 既存のSite ShiledのIP ListとLinodeのFirewall ruleに差分がないことを確認する
     - name: Diff SS LF current ip list
       run: |
         linode-cli firewalls rules-list $FIREWALL_ID --json | jq '.[].inbound[].addresses.ipv4' > lf-3.json
