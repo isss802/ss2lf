@@ -7,6 +7,7 @@ env:
   LINODE_CLI_TOKEN: ${{secrets.LINODE_CLI_TOKEN}}
   AKAMAI_CREDENTIALS: ${{secrets.AKAMAI_CREDENTIALS}}
   MAP_ID: ${{secrets.MAP_ID}}
+  FIREWALL_ID: ${{secrets.FIREWALL_ID}}
 
 jobs:
   ss2lf:
@@ -28,4 +29,11 @@ jobs:
     - name: Get SiteShield ip list
       run: |
         IP_LIST=`./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs | @csv'`
-        echo $IP_LIST
+    
+    - name: Create allow ip list
+      run: |
+        ALLOW_IP_LIST=`printf '[{"protocol": "TCP", "ports": "443", "addresses": {"ipv4": [%s]}, "action": "ACCEPT"}]' $IP_LIST`
+
+    - name: Update linode firewall
+      run: |
+        linode-cli firewalls rules-update $FIREWALL_ID --inbound $ALLOW_IP_LIST
