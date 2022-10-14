@@ -5,19 +5,27 @@ on:
   
 env:
   LINODE_CLI_TOKEN: ${{secrets.LINODE_CLI_TOKEN}}
-  AKAMAI_CREDENTIALS : ${{secrets.AKAMAI_CREDENTIALS}}
+  AKAMAI_CREDENTIALS: ${{secrets.AKAMAI_CREDENTIALS}}
+  MAP_ID: ${{secrets.MAP_ID}}
 
 jobs:
   ss2lf:
     runs-on: ubuntu-22.04
     steps:
+    
     - name: Checkout
       uses: actions/checkout@v3
+    
     - name: Setup Linode CLI
       run: pip3 install linode-cli --upgrade
+
     - name: Setup Akamai CLI
       run: |
         echo "$AKAMAI_CREDENTIALS" > ~/.edgerc
         chmod +x akamai
         ./akamai install firewall
-        ./akamai site-shield --section default list-maps
+
+    - name: Get SiteShield ip list
+      run: |
+        IP_LIST=`./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs | @csv'`
+        echo $IP_LIST
