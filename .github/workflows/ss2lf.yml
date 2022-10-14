@@ -26,17 +26,11 @@ jobs:
         chmod +x akamai
         ./akamai install firewall
         
-    - name: Get acknowledged
-      id: get_ack
+    - name: Check acknowledged
+      id: ack
       run: |
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
       continue-on-error: true
-        
-    - name: Check acknowledged
-      if: ${{ steps.get_ack.outcome == 'success' }}
-      run: |
-        echo ${{ steps.get_ack.outcome }}
-        exit 1
 
     - name: Diff SS LF ip list
       id: diff
@@ -50,18 +44,18 @@ jobs:
       run: |
         SS_IP_LIST=`./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs | @csv'`
         echo "SS_IP_LIST=$SS_IP_LIST" >> $GITHUB_ENV
-      if: steps.diff.outcome == 'failure'
+      if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
       
     - name: Create allow ip list
       run: |
         LF_IP_LIST=`printf '[{"protocol": "TCP", "ports": "443", "addresses": {"ipv4": [%s]}, "action": "ACCEPT"}]' $SS_IP_LIST`
         echo "LF_IP_LIST='$LF_IP_LIST'" >> $GITHUB_ENV
-      if: steps.diff.outcome == 'failure'
+      if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
       
     - name: Update linode firewall
       run: |
         linode-cli firewalls rules-update $FIREWALL_ID --inbound ${{ env.LF_IP_LIST }}
-      if: steps.diff.outcome == 'failure'
+      if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
     
     
     - name: Diff SS LF ip list 2
@@ -74,16 +68,9 @@ jobs:
     - name: Update acknowledged
       run: |
         ./akamai site-shield --section default acknowledge --map-id $MAP_ID
+      if: steps.ack.outcome == 'failure' && steps.diff.outcome == 'failure'
 
-    - name: Get acknowledged 2
-      id: get_ack_2
+    - name: Check acknowledged 2
       run: |
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
-      continue-on-error: true
-        
-    - name: Check acknowledged 2
-      if: ${{ steps.get_ack_2.outcome == 'success' }}
-      run: |
-        echo ${{ steps.get_ack_2.outcome }}
-        exit 0
 
