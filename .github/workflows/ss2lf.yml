@@ -2,10 +2,13 @@ name: ss2lf
 
 on: 
   workflow_dispatch:
+  
+env:
+  LINODE_CLI_TOKEN:${{ secrets.LINODE_CLI_TOKEN }}
 
 jobs:
   ss2lf:
     runs-on: ubuntu-22.04
     steps:
     - name: Setup Linode CLI
-      run: echo ${{ secrets.LINODE_CLI_TOKEN }}
+      run: echo $LINODE_CLI_TOKEN
