@@ -38,4 +38,6 @@ jobs:
 
     - name: Update linode firewall
       run: |
+        echo "$LF_IP_LIST" | jq
+        echo "$LF_IP_LIST"
         linode-cli firewalls rules-update $FIREWALL_ID --inbound $LF_IP_LIST
