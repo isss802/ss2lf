@@ -27,21 +27,26 @@ jobs:
         ./akamai install firewall
 
     - name: Diff SS LF ip list
+      id: diff
       run: |
         linode-cli firewalls rules-list $FIREWALL_ID --json | jq '.[].inbound[].addresses.ipv4' > lf.json
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs' > ss.json
         diff lf.json ss.json
+      continue-on-error: true
 
     - name: Get SiteShield ip list
       run: |
         SS_IP_LIST=`./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -r '.proposedCidrs | @csv'`
         echo "SS_IP_LIST=$SS_IP_LIST" >> $GITHUB_ENV
-
+      if: steps.diff.outcome == 'failure'
+      
     - name: Create allow ip list
       run: |
         LF_IP_LIST=`printf '[{"protocol": "TCP", "ports": "443", "addresses": {"ipv4": [%s]}, "action": "ACCEPT"}]' $SS_IP_LIST`
         echo "LF_IP_LIST='$LF_IP_LIST'" >> $GITHUB_ENV
-
+      if: steps.diff.outcome == 'failure'
+      
     - name: Update linode firewall
       run: |
         linode-cli firewalls rules-update $FIREWALL_ID --inbound ${{ env.LF_IP_LIST }}
+      if: steps.diff.outcome == 'failure'
