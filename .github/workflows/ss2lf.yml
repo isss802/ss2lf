@@ -17,6 +17,7 @@ jobs:
       run: pip3 install linode-cli --upgrade
     - name: Setup Akamai CLI
       run: |
+        echo "$AKAMAI_CREDENTIALS" > ~/.edgerc
         chmod +x akamai
         ./akamai install firewall
-        echo "$AKAMAI_CREDENTIALS" > ~/.edgerc
+        ./akamai site-shield --section default list-maps
