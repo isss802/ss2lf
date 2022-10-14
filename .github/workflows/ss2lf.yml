@@ -2,7 +2,7 @@ name: ss2lf
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '* * * * *'
 
 env:
   LINODE_CLI_TOKEN: ${{secrets.LINODE_CLI_TOKEN}}
