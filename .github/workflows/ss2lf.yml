@@ -36,4 +36,4 @@ jobs:
 
     - name: Update linode firewall
       run: |
-        linode-cli firewalls rules-update $FIREWALL_ID --inbound $ALLOW_IP_LIST
+        echo "linode-cli firewalls rules-update $FIREWALL_ID --inbound $ALLOW_IP_LIST"
