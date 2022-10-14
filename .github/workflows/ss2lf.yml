@@ -33,9 +33,9 @@ jobs:
 
     - name: Create allow ip list
       run: |
-        printf '[{"protocol": "TCP", "ports": "443", "addresses": {"ipv4": [%s]}, "action": "ACCEPT"}]' $SS_IP_LIST
-        echo "SS_IP_LIST=$SS_IP_LIST" >> $GITHUB_ENV
+        printf '[{"protocol": "TCP", "ports": "443", "addresses": {"ipv4": [%s]}, "action": "ACCEPT"}]' $SS_IP_LIST > $LF_IP_LIST
+        echo "LF_IP_LIST=$LF_IP_LIST" >> $GITHUB_ENV
 
     - name: Update linode firewall
       run: |
-        echo "linode-cli firewalls rules-update $FIREWALL_ID --inbound $SS_IP_LIST"
+        echo "linode-cli firewalls rules-update $FIREWALL_ID --inbound $LF_IP_LIST"
