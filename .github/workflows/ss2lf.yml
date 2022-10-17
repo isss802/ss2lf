@@ -36,10 +36,12 @@ jobs:
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq -e 'any(.; .acknowledged==true)'
       continue-on-error: true
     
+    # proposedCidrsに値があるか確認
     - name: Check Null
       run: |
         ./akamai site-shield --section default list-cidrs --map-id $MAP_ID --json | jq  -re '.proposedCidrs[]'
-    
+      if: steps.ack.outcome == 'failure'
+
     # LinodeのFirewall ruleとSiteShiledのIPに差分がある際に更新を行う
     - name: Diff SS LF ip list
       id: diff
